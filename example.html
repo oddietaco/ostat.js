@@ -21,15 +21,12 @@
 	}
 
 	function NormalDistribution(mu,sigma) {
-
 		ContinuousDistribution.call(this);
 
 		mean = mu || 0;
 		stdev = sigma || 1;
 		
-		// returns a random number distributed Normal(mean,stdev)
 		this.rand = function() {
-			// uses the Box-Muller methodd
 			var u = this.unifRand(0,1);
 			var v = this.unifRand(0,1);
 
@@ -45,6 +42,8 @@
 	NormalDistribution.prototype.constructor = NormalDistribution;
 
 	function ExponentialDistribution(lambda) {
+		ContinuousDistribution.call(this);
+
 		stdev = mean = 1/lambda || 1;
 
 		this.rand = function() {
@@ -59,6 +58,25 @@
 
 	ExponentialDistribution.prototype = new ContinuousDistribution();
 	ExponentialDistribution.prototype.constructor = ExponentialDistribution;
+
+
+	function UniformDistribution(low,high) {
+		ContinuousDistribution.call(this);
+
+		mean = (1/2) * (low + high);
+		stdev = Math.sqrt((1/12) * ((high-low)*(high-low)));
+
+		this.rand = function() {
+			return this.unifRand(low,high);
+		}
+
+		this.toString = function() {
+			return "Unif (" + low.toFixed(2) + "," + high.toFixed(2) + ")";
+		}
+	}
+
+	UniformDistribution.prototype = new ContinuousDistribution();
+	UniformDistribution.prototype.constructor = UniformDistribution;
 
 	</script>
 </head>
