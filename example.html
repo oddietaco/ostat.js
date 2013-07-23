@@ -23,6 +23,30 @@
 			if(x<0) return 0;
 			return 1;
 		}
+
+		this.GammaLn = function(x) {
+			var j, a, b, tmp, ser = 0;
+
+			var coef = new Array(
+					76.18009172947146,
+					-86.50532032941677,
+					24.01409824083091,
+					-1.231739572450155,
+					0.001208650973866179,
+					-0.000005395239384953
+				);
+
+			b = a = x;
+
+			tmp = a + 5.5 - (a + 0.5) * Math.log(a+5.5);
+			ser = 1.000000000190015;
+
+			for(j=0; j<=5; j++) {
+				ser += (coef[j] / ++b);
+			}
+
+			return (Math.log(2.5066282746310005 * ser / a) - tmp); 
+		}
 	}
 
 	function NormalDistribution(mu,sigma) {
@@ -118,6 +142,23 @@
 
 	UniformDistribution.prototype = new ContinuousDistribution();
 	UniformDistribution.prototype.constructor = UniformDistribution;
+
+	function GammaDistribution(alpha,beta) {
+		ContinuousDistribution.call(this);
+
+		if(alpha <= 0 || beta <= 0) {
+			console.warn("Invalid arguments to GammaDistribution. Both alpha and beta must be positive");
+			return Number.NaN;
+		}
+
+		mean = alpha / (alpha + beta);
+		variance = alpha * beta / ((alpha+beta)^2*(alpha+beta+1));
+		stdev = Math.sqrt(variance);
+
+		this._cdf = function(x) {
+			// F(x;alpha,beta) = B(x;alpha,beta) / B(alpha,beta)
+		}
+	}
 
 	</script>
 </head>
