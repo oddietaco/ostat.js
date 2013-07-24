@@ -5,27 +5,26 @@
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
   <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
   <script src="http://code.highcharts.com/highcharts.js"></script>
+  <link rel="stylesheet" type="text/css" href="ostat.css" />
+  <link href='http://fonts.googleapis.com/css?family=Ubuntu+Mono|Arvo|PT+Sans' rel='stylesheet' type='text/css'>
 </head>
 
 <body>
-	<h1>oStat</h1>
+	<h1>oStat.js</h1>
 	<h2>Examples</h2>
 	<div class="exampleDescription">Getting a random number from a normal distribution with mean 500 and standard deviation 100.</div>
 	<pre class="exampleCode">
-alert(new NormalDistribution(500,100).rand());
-	</pre>
+alert(new NormalDistribution(500,100).rand());</pre>
 
-	<div class="exampleDescription">Getting 10 random numbers from a normal distribution with mean 500 and standard deviation 100.</div>
+	<div class="exampleDescription">Getting 10 random numbers from an exponential distribution with rate 0.5.</div>
 	<pre class="exampleCode">
-alert(new NormalDistribution(500,100).rand(10));
-	</pre>
+alert(new ExponentialDistribution(.5).rand(10));</pre>
 
 	<div class="exampleDescription">Plotting 1000 random variables from a normal distribution.</div>
 	<pre class="exampleCode">
 var distribution = new NormalDistribution(0,1);
 var rands = distribution.rand(1000);
-distribution.plotHistogram('#container',rands);
-	</pre>
+distribution.plotHistogram('#container',rands,"Histogram of N(0,1) Random Variates","Number of Occurences");</pre>
 	<div id="container" style="width:100%; height:400px;"></div>
 </body>
 

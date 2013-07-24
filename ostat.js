@@ -1,10 +1,28 @@
+/*
+ * This contains a number of helpful functions that can be used to help with
+ * the calculation of statistical and probabilistic properties. However, they
+ * are not necessarily statistical functions.
+ *
+ */
 var MathExt = {
+
+	/*
+	 * The Heaviside function.
+	 * See http://en.wikipedia.org/wiki/Heaviside_step_function
+	 */
 	H: function(x) {
 		if(isNaN(x)) return Math.NaN;
 		if(x<0) return 0;
 		return 1;
 	},
 
+	/*
+	 * Returns the logarithm of the gamma function. GammaLn(A) = Log(Gamma(A)). However,
+	 * this function avoids potential problems related to overflow that could occur
+	 * if calculated in the Log(Gamma(A)) approach.
+	 *
+	 * See http://www.mit.edu/~mbarker/formula1/f1help/04-g-m3.htm
+	 */
 	GammaLn: function(x) {
 		var coef = new Array(
 				 76.18009172947146,
@@ -28,18 +46,45 @@ var MathExt = {
 	}
 }
 
+/*
+ * Abstract class that is provides common functions for
+ * all continuous distributions.
+ *
+ */
 function ContinuousDistribution() {
 	mean = NaN;
 	stdev = NaN;
 
+	/*
+	 * Returns the mean of the distribution. Objects that have
+	 * ContinuousDistribution as their prototype should ensure
+	 * that they calculate their own mean, and store it.
+	 *
+	 */
 	this.getMean = function() {return mean;}
 
+	/*
+	 * Returns the standard deviation of the distribution. Objects that have
+	 * ContinuousDistribution as their prototype should ensure
+	 * that they calculate their own standard deviation, and store it.
+	 *
+	 */
 	this.getStDev = function() {return stdev;}
 
-	this.unifRand = function(low,high) {
+	/*
+	 * Returns a random number, distributed uniformly
+	 * between low and high.
+	 *
+	 */
+	this._unifRand = function(low,high) {
 		return Math.random() * (high - low) + low;
 	}
 
+	/*
+	 * Returns an array (of lenght num) of random variables distributed according
+	 * to the type of object that has this object as its prototype.
+	 *
+	 */
 	this.rand = function(num) {
 		if(isNaN(num)) {
 			console.warn("Invalid argument to rand. Number of random elements to generate must be a positive integer");
@@ -58,15 +103,28 @@ function ContinuousDistribution() {
 		return rand_array;
 	}
 
+	/*
+	 * Returns the Pr(X<=x), according to X being distributed according to the
+	 * type of object that has this object as its prototype
+	 *
+	 */
 	this.F = function(x) {
 		return this._cdf(x);
 	}
 
-	this.plotHistogram = function(container, orig_values, title, yaxis_title) {
+	/*
+	 * @TODO: Move this to a "DescriptiveStatistics" class
+	 * @TODO: Make this support High Charts-style parameter settting.
+	 *
+	 * Puts a high charts graph into the element with id container. The graph
+	 * will represent a historgram of the values in passed in.
+	 *
+	 */
+	this.plotHistogram = function(container, values, title, yaxis_title, num_bins) {
 		title = title || "Histogram Plot";
 		yaxis_title = yaxis_title || "Count";
 
-		bins = this._createBins(orig_values);
+		bins = this._createBins(values, num_bins);
 
 		$(container).highcharts({
             chart: {
@@ -93,13 +151,21 @@ function ContinuousDistribution() {
         });
 	}
 
-	this._createBins = function(orig_values) {
+	/*
+	 * @TODO Use different binning method
+	 *
+	 * Helper method to calculate the width and number of bins that will
+	 * be used in the Histogram plot. Also, provides the count of values
+	 * that occur within each bin.
+	 *
+	 */
+	this._createBins = function(orig_values,num_bins) {
 		var values = orig_values.slice(0);
 		values.sort(function(a,b){return a-b});
 		
 		// there are other, more sophisticated ways of computing the number of bins
 		// maybe some day I'll add one
-		var num_bins = Math.floor(Math.sqrt(values.length));
+		num_bins = num_bins || Math.floor(Math.sqrt(values.length));
 
 		var bin_width = (values[values.length-1]-values[0])/num_bins;
 		var bin_counts = new Array();
@@ -130,6 +196,10 @@ function ContinuousDistribution() {
 	}
 }
 
+/*
+ * The Normal Distribution, which inherits from the ContinuousDistribution.
+ *
+ */
 function NormalDistribution(mu,sigma) {
 	ContinuousDistribution.call(this);
 
@@ -142,8 +212,8 @@ function NormalDistribution(mu,sigma) {
 	stdev = sigma || 1;
 	
 	this._rand = function() {
-		var u = this.unifRand(0,1);
-		var v = this.unifRand(0,1);
+		var u = this._unifRand(0,1);
+		var v = this._unifRand(0,1);
 
 		return (Math.sqrt(-2 * Math.log(u)) * Math.cos(2*v*Math.PI)) * stdev + mean;
 	}
@@ -152,18 +222,25 @@ function NormalDistribution(mu,sigma) {
 		return "Normal (" + mean.toFixed(2) + "," + stdev.toFixed(2) + ")";
 	}
 
+	/*
+	 * Uses the numerical approximation to the Normal Distributions CDF that is stated in
+	 * Johnson, Kotz and Balakrishnan (1994), Continuous univariate distributions, John Wiley and Sons
+	 */
 	this._cdf = function(x) {
 		x = (x-mu) / stdev;
 
-		// From Johnson, Kotz and Balakrishnan (1994). Continuous univariate distributions, John Wiley and Sons
+		// From Johnson, Kotz and Balakrishnan (1994), Continuous univariate distributions, John Wiley and Sons
 		var y = 0.7988*x*(1+0.04417*x*x);
 		return Math.exp(2*y) / (1+Math.exp(2*y));
 	}
 }
-
 NormalDistribution.prototype = new ContinuousDistribution();
 NormalDistribution.prototype.constructor = NormalDistribution;
 
+/*
+ * The Exponential Distribution, with rate parameter lambda.
+ *
+ */
 function ExponentialDistribution(lambda) {
 	ContinuousDistribution.call(this);
 
@@ -175,7 +252,7 @@ function ExponentialDistribution(lambda) {
 	stdev = mean = 1/lambda || 1;
 
 	this._rand = function() {
-		var u = this.unifRand(0,1);
+		var u = this._unifRand(0,1);
 		return (-1*Math.log(u))/lambda;
 	}
 
@@ -187,10 +264,13 @@ function ExponentialDistribution(lambda) {
 		return MathExt.H(x)*(1-Math.exp(-1*lambda*x));
 	}
 }
-
 ExponentialDistribution.prototype = new ContinuousDistribution();
 ExponentialDistribution.prototype.constructor = ExponentialDistribution;
 
+/*
+ * The Uniform Distribution, with low and high values. 
+ *
+ */
 function UniformDistribution(low,high) {
 	ContinuousDistribution.call(this);
 
@@ -206,7 +286,7 @@ function UniformDistribution(low,high) {
 	stdev = Math.sqrt((1/12)*((high-low)*(high-low)));
 
 	this._rand = function() {
-		return this.unifRand(low,high);
+		return this._unifRand(low,high);
 	}
 
 	this.toString = function() {
@@ -219,10 +299,13 @@ function UniformDistribution(low,high) {
 		return (x-low)/(high-low);
 	}
 }
-
 UniformDistribution.prototype = new ContinuousDistribution();
 UniformDistribution.prototype.constructor = UniformDistribution;
 
+/*
+ * The Gamma distribution. Far from being done.
+ *
+ */
 function GammaDistribution(alpha,beta) {
 	ContinuousDistribution.call(this);
 

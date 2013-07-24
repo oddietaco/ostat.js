@@ -1,0 +1,31 @@
+html {
+	background-color: #f6f4f0;
+}
+
+body {
+	background-color: #ffffff;
+	font-family: 'Arvo', serif;
+	margin-left: 80px;
+	margin-right: 80px;
+	padding-left: 40px;
+	padding-right: 40px;
+	border-style: solid;
+	border-color: #dddad7;
+}
+
+h1, h2 {
+	color: #e67100;
+	font-family: 'PT Sans', sans-serif;
+}
+
+h1 {
+	font-size: 48pt;
+}
+
+pre.exampleCode {
+	font-family: 'Ubuntu Mono', sans-serif;
+	margin-left: 20px;
+	background-color: #cecece;
+	padding: 3px;
+	font-size: 11pt;
+}
