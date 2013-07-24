@@ -2,6 +2,9 @@
 <html>
 <head>
   <script type="text/javascript" src="ostat.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+  <script src="http://code.highcharts.com/highcharts.js"></script>
 </head>
 
 <body>
@@ -16,6 +19,14 @@ alert(new NormalDistribution(500,100).rand());
 	<pre class="exampleCode">
 alert(new NormalDistribution(500,100).rand(10));
 	</pre>
+
+	<div class="exampleDescription">Plotting 1000 random variables from a normal distribution.</div>
+	<pre class="exampleCode">
+var distribution = new NormalDistribution(0,1);
+var rands = distribution.rand(1000);
+distribution.plotHistogram('#container',rands);
+	</pre>
+	<div id="container" style="width:100%; height:400px;"></div>
 </body>
 
 </html>
