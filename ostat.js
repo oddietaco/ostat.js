@@ -46,6 +46,124 @@ var MathExt = {
 	}
 }
 
+var DescriptiveStatistics = {
+
+	/*
+	 *
+	 * Puts a high charts graph into the element with id container. The graph
+	 * will represent a historgram of the values in passed in.
+	 *
+	 */
+	plotHistogram: function(container, values, options) {
+		bins = this._createBins(values);
+
+		if(!(typeof options == "object" && options !== null)) {
+			options = new Object();
+		}
+
+		var base_options = new Object();	
+		base_options.chart = {type: "column"};
+		base_options.xAxis = {type: "linear"};
+		base_options.yAxis = {min: 0};
+		base_options.tooltip = {enabled: false};
+		base_options.series = [{
+                data: bins.counts,
+                showInLegend: false,
+                pointStart: bins.min,
+                pointInterval: bins.width
+            }];
+
+		$.extend(true,options,base_options);
+        $(container).highcharts(options);
+	},
+
+	/*
+	 * @TODO: Currently, this function only supports *adding* an interactive chart to an
+	 * existing histogram chart. Expand it to support creating an interactive PDF as the only
+	 * chart in the container.
+	 *
+	 * Puts an interactive representation of the specified distribution's PDF on a chart.
+	 */
+	plotInteractivePDF: function(container,distribution,mesh) {
+
+		mesh = mesh || 20;
+
+		var chart = $(container).highcharts();
+		if(chart.series.length==1) {
+			var mesh_grid = distribution.meshGrid(mesh);
+			var pdf_points = new Array();
+
+			for(var i=0; i<mesh+1;i++) {
+				pdf_points.push(distribution.f(mesh_grid.points[i]));
+			}
+
+			chart.addAxis({
+				id: 'pdfaxis',
+				min: 0,
+				labels: {enabled: false},
+				title: {text: null},
+			});
+
+			chart.addSeries({
+                data: pdf_points,
+                yAxis: 'pdfaxis',
+                type: 'spline',
+                showInLegend: false,
+                marker: {enabled: false},
+                pointStart: mesh_grid.min,
+                pointInterval: mesh_grid.width
+            });
+		}
+	},
+
+	/*
+	 * @TODO Use different binning method
+	 *
+	 * Helper method to calculate the width and number of bins that will
+	 * be used in the Histogram plot. Also, provides the count of values
+	 * that occur within each bin.
+	 *
+	 */
+	_createBins: function(orig_values,num_bins) {
+		var values = orig_values.slice(0);
+		values.sort(function(a,b){return a-b});
+		
+		// there are other, more sophisticated ways of computing the number of bins
+		// maybe some day I'll add one
+		num_bins = num_bins || Math.floor(Math.sqrt(values.length));
+
+		var bin_width = (values[values.length-1]-values[0])/num_bins;
+		var bin_counts = new Array();
+		var bin_limits = new Array();
+		var bin_max = values[0]+bin_width;
+		var bin_current = 0;
+
+		bin_counts[0] = 0;
+		bin_limits[0] = "[" + values[0].toFixed(3) + ", " + bin_max.toFixed(3) + ")";
+
+		for(var i=0; i<values.length;i++) {
+			if(values[i]>=bin_max) {
+				bin_current++;
+				bin_counts[bin_current] = 0;
+				bin_limits[bin_current] = "[" + bin_max.toFixed(3) + ", ";
+				bin_max += bin_width;
+				bin_limits[bin_current] += bin_max.toFixed(3) + ")";
+			}
+			bin_counts[bin_current]++;
+		}
+
+		bins = {
+			counts: bin_counts,
+			limits: bin_limits,
+			min: values[0],
+			max: values[values.length-1],
+			width: bin_width
+		}
+
+		return bins;
+	}
+}
+
 /*
  * Abstract class that is provides common functions for
  * all continuous distributions.
@@ -113,86 +231,20 @@ function ContinuousDistribution() {
 	}
 
 	/*
-	 * @TODO: Move this to a "DescriptiveStatistics" class
-	 * @TODO: Make this support High Charts-style parameter settting.
-	 *
-	 * Puts a high charts graph into the element with id container. The graph
-	 * will represent a historgram of the values in passed in.
+	 * Returns the value of x on the probability density function.
 	 *
 	 */
-	this.plotHistogram = function(container, values, title, yaxis_title, num_bins) {
-		title = title || "Histogram Plot";
-		yaxis_title = yaxis_title || "Count";
-
-		bins = this._createBins(values, num_bins);
-
-		$(container).highcharts({
-            chart: {
-                type: 'column'
-            },
-            title: {
-                text: title
-            },
-        	xAxis: {
-                categories: bins.limits,
-                labels: {enabled: false}
-            },
-            yAxis: {
-                min: 0,
-                title: {
-                    text: yaxis_title
-                },
-                allowDecimals: false
-            },
-            series: [{
-                data: bins.counts,
-                showInLegend: false
-            }]
-        });
+	this.f = function(x) {
+		return this._pdf(x);
 	}
 
 	/*
-	 * @TODO Use different binning method
-	 *
-	 * Helper method to calculate the width and number of bins that will
-	 * be used in the Histogram plot. Also, provides the count of values
-	 * that occur within each bin.
+	 * @TODO: Refactor so that _determinMesh returns the information needed to create the 
+	 * mesh, but doesn't actually create the mesh.
 	 *
 	 */
-	this._createBins = function(orig_values,num_bins) {
-		var values = orig_values.slice(0);
-		values.sort(function(a,b){return a-b});
-		
-		// there are other, more sophisticated ways of computing the number of bins
-		// maybe some day I'll add one
-		num_bins = num_bins || Math.floor(Math.sqrt(values.length));
-
-		var bin_width = (values[values.length-1]-values[0])/num_bins;
-		var bin_counts = new Array();
-		var bin_limits = new Array();
-		var bin_max = values[0]+bin_width;
-		var bin_current = 0;
-
-		bin_counts[0] = 0;
-		bin_limits[0] = "[" + values[0].toFixed(3) + ", " + bin_max.toFixed(3) + ")";
-
-		for(var i=0; i<values.length;i++) {
-			if(values[i]>=bin_max) {
-				bin_current++;
-				bin_counts[bin_current] = 0;
-				bin_limits[bin_current] = "[" + bin_max.toFixed(3) + ", ";
-				bin_max += bin_width;
-				bin_limits[bin_current] += bin_max.toFixed(3) + ")";
-			}
-			bin_counts[bin_current]++;
-		}
-
-		bins = {
-			counts: bin_counts,
-			limits: bin_limits
-		}
-
-		return bins;
+	this.meshGrid = function(mesh) {
+		return this._determineMesh(mesh);
 	}
 }
 
@@ -222,6 +274,27 @@ function NormalDistribution(mu,sigma) {
 		return "Normal (" + mean.toFixed(2) + "," + stdev.toFixed(2) + ")";
 	}
 
+	this._determineMesh = function(mesh_grain) {
+		min = mean-5*stdev;
+		max = mean+5*stdev;
+
+		var mesh_increment = (max-min)/mesh_grain;
+		var mesh_points = new Array();
+
+		for(var i=0; i<=mesh_grain; i++) {
+			mesh_points.push(min+mesh_increment*i);
+		}
+
+		var mesh = {
+			min: min,
+			max: max,
+			points: mesh_points,
+			width: mesh_increment
+		};
+
+		return mesh;
+	}
+
 	/*
 	 * Uses the numerical approximation to the Normal Distributions CDF that is stated in
 	 * Johnson, Kotz and Balakrishnan (1994), Continuous univariate distributions, John Wiley and Sons
@@ -232,6 +305,12 @@ function NormalDistribution(mu,sigma) {
 		// From Johnson, Kotz and Balakrishnan (1994), Continuous univariate distributions, John Wiley and Sons
 		var y = 0.7988*x*(1+0.04417*x*x);
 		return Math.exp(2*y) / (1+Math.exp(2*y));
+	}
+
+	this._pdf = function(x) {
+		var scale = 1/(Math.sqrt(2*Math.PI)*stdev);
+		var exponent = -1*((x-mean)*(x-mean))/(2*stdev*stdev);
+		return scale*Math.exp(exponent);
 	}
 }
 NormalDistribution.prototype = new ContinuousDistribution();
@@ -262,6 +341,31 @@ function ExponentialDistribution(lambda) {
 
 	this._cdf = function(x) {
 		return MathExt.H(x)*(1-Math.exp(-1*lambda*x));
+	}
+	
+	this._pdf = function(x) {
+		return lambda*Math.exp(-1*lambda*x);
+	}
+
+	this._determineMesh = function(mesh_grain) {
+		min = 0;
+		max = -1*Math.log(1-.995)/lambda;
+
+		var mesh_increment = (max-min)/mesh_grain;
+		var mesh_points = new Array();
+
+		for(var i=0; i<=mesh_grain; i++) {
+			mesh_points.push(min+mesh_increment*i);
+		}
+
+		var mesh = {
+			min: min,
+			max: max,
+			points: mesh_points,
+			width: mesh_increment
+		};
+
+		return mesh;
 	}
 }
 ExponentialDistribution.prototype = new ContinuousDistribution();
@@ -297,6 +401,32 @@ function UniformDistribution(low,high) {
 		if(x < low) return 0;
 		if(x > high) return 1;
 		return (x-low)/(high-low);
+	}
+
+	this._pdf = function(x) {
+		if(x < low) return 0;
+		if(x > high) return 0;
+		return 1/(high-low);
+	}
+
+	this._determineMesh = function(mesh_grain) {
+		min = low;
+		max = high;
+		var mesh_increment = (max-min)/mesh_grain;
+		var mesh_points = new Array();
+
+		for(var i=0; i<=mesh_grain; i++) {
+			mesh_points.push(min+mesh_increment*i);
+		}
+
+		var mesh = {
+			min: min,
+			max: max,
+			points: mesh_points,
+			width: mesh_increment
+		};
+
+		return mesh;
 	}
 }
 UniformDistribution.prototype = new ContinuousDistribution();
