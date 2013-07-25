@@ -261,13 +261,11 @@ function ContinuousDistribution() {
  *
  */
 function NormalDistribution(mu,sigma) {
-	ContinuousDistribution.call(this);
-
 	if(sigma <= 0) {
-		console.warn("Invalid argument to NormalDistribution. sigma must be greater than 0");
-		return Number.NaN;
+		throw "Invalid argument to NormalDistribution. sigma must be greater than 0";
 	}
 
+	ContinuousDistribution.call(this);
 	mean = mu || 0;
 	stdev = sigma || 1;
 	
