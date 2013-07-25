@@ -13,7 +13,7 @@
 	<h1>oStat.js</h1>
 
 	<h2>About</h2>
-	The oStat.js library provides access to common statistical and probability tools.
+	The oStat.js library provides access to common statistical and probability tools. It is <em>far</em> from production-ready.
 
 	<h2>Examples</h2>
 	<div class="exampleDescription">Getting a random number from a normal distribution with mean 500 and standard deviation 100.</div>
@@ -34,28 +34,41 @@ alert(DescriptiveStatistics.maximumLikelihood(rands,distribution).lambda);</pre>
 	<pre class="exampleCode">
 var distribution = new NormalDistribution(0,1);
 var rands = distribution.rand(1000);
-DescriptiveStatistics.plotHistogram('#graph_container',rands,{title:{text:"Histogram of N(0,1) Random Variates"},yAxis:{title:{text:"Count"}}});</pre>
+DescriptiveStatistics.plotHistogram('#graph_container',rands,{
+	title:{text:"Histogram of N(0,1) Random Variates"},
+	yAxis:{title:{text:"Count"}}
+});</pre>
 
 	<div class="exampleDescription">Interactively fit a normal distribution to a set of random data.</div>
 	<pre class="exampleCode">
 var distribution = new NormalDistribution(0,1);
 var rands = distribution.rand(1000);
-DescriptiveStatistics.plotHistogram('#graph_container',rands,{title:{text:"Histogram of N(0,1) Random Variates"},yAxis:{title:{text:"Count"}}});
+DescriptiveStatistics.plotHistogram('#graph_container',rands, {
+	title:{text:"Histogram of N(0,1) Random Variates"},
+	yAxis:{title:{text:"Count"}}
+});
 DescriptiveStatistics.plotInteractivePDF('#graph_container',new NormalDistribution(0,1));</pre>
 
 	<div class="exampleDescription">Interactively fit a uniform distribution to a set of random data.</div>
 	<pre class="exampleCode">
 var distribution = new UniformDistribution(0,10);
 var rands = distribution.rand(1000);
-DescriptiveStatistics.plotHistogram('#graph_container',rands,{title:{text:"Histogram of U(0,10) Random Variates"},yAxis:{title:{text:"Count"}}});
+DescriptiveStatistics.plotHistogram('#graph_container',rands,{
+	title:{text:"Histogram of U(0,10) Random Variates"},
+	yAxis:{title:{text:"Count"}}
+});
 DescriptiveStatistics.plotInteractivePDF('#graph_container',new UniformDistribution(0,10));</pre>
 
 	<div class="exampleDescription">Interactively fit an exponential distribution to a set of random data.</div>
 	<pre class="exampleCode">
 var distribution = new ExponentialDistribution(.5);
 var rands = distribution.rand(1000);
-DescriptiveStatistics.plotHistogram('#graph_container',rands,{title:{text:"Histogram of Exp(.5) Random Variates"},yAxis:{title:{text:"Count"}}});
-DescriptiveStatistics.plotInteractivePDF('#graph_container',new ExponentialDistribution(DescriptiveStatistics.maximumLikelihood(rands,distribution).lambda));</pre>
+DescriptiveStatistics.plotHistogram('#graph_container',rands,{
+	title:{text:"Histogram of Exp(.5) Random Variates"},
+	yAxis:{title:{text:"Count"}
+});
+DescriptiveStatistics.plotInteractivePDF('#graph_container',
+	new ExponentialDistribution(DescriptiveStatistics.maximumLikelihood(rands,distribution).lambda));</pre>
 
 	<div id="graph_container" style="width:100%; height:400px;"></div>
 </body>
