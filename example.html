@@ -24,6 +24,12 @@ alert(new NormalDistribution(500,100).rand());</pre>
 	<pre class="exampleCode">
 alert(new ExponentialDistribution(.5).rand(10));</pre>
 
+	<div class="exampleDescription">Getting 100 random numbers from an exponential distribution with rate 0.5. Then finding out what the maximum likelihood estimate for lambda, based on the sample.</div>
+	<pre class="exampleCode">
+var distribution = new ExponentialDistribution(.5);
+var rands = distribution.rand(100);
+alert(DescriptiveStatistics.maximumLikelihood(rands,distribution).lambda);</pre>
+
 	<div class="exampleDescription">Plotting 1000 random variables from a normal distribution.</div>
 	<pre class="exampleCode">
 var distribution = new NormalDistribution(0,1);
@@ -49,7 +55,7 @@ DescriptiveStatistics.plotInteractivePDF('#graph_container',new UniformDistribut
 var distribution = new ExponentialDistribution(.5);
 var rands = distribution.rand(1000);
 DescriptiveStatistics.plotHistogram('#graph_container',rands,{title:{text:"Histogram of Exp(.5) Random Variates"},yAxis:{title:{text:"Count"}}});
-DescriptiveStatistics.plotInteractivePDF('#graph_container',distribution);</pre>
+DescriptiveStatistics.plotInteractivePDF('#graph_container',new ExponentialDistribution(DescriptiveStatistics.maximumLikelihood(rands,distribution).lambda));</pre>
 
 	<div id="graph_container" style="width:100%; height:400px;"></div>
 </body>

@@ -85,7 +85,6 @@ var DescriptiveStatistics = {
 	 * Puts an interactive representation of the specified distribution's PDF on a chart.
 	 */
 	plotInteractivePDF: function(container,distribution,mesh) {
-
 		mesh = mesh || 20;
 
 		var chart = $(container).highcharts();
@@ -114,6 +113,11 @@ var DescriptiveStatistics = {
                 pointInterval: mesh_grid.width
             });
 		}
+	},
+
+	maximumLikelihood: function(values, distribution) {
+		var mle = distribution.maximumLikelihood(values);
+		return mle;
 	},
 
 	/*
@@ -246,6 +250,10 @@ function ContinuousDistribution() {
 	this.meshGrid = function(mesh) {
 		return this._determineMesh(mesh);
 	}
+
+	this.maximumLikelihood = function(values) {
+		return this._mle(values);
+	}
 }
 
 /*
@@ -323,8 +331,8 @@ NormalDistribution.prototype.constructor = NormalDistribution;
 function ExponentialDistribution(lambda) {
 	ContinuousDistribution.call(this);
 
-	if(lambda <= 0) {
-		console.warn("Invalid argument to ExponentialDistribution. lambda must be greater than 0");
+	if(isNaN(lambda) || lambda <= 0) {
+		console.warn("Invalid argument to ExponentialDistribution. lambda must be a number greater than 0");
 		return Number.NaN;
 	}
 
@@ -366,6 +374,21 @@ function ExponentialDistribution(lambda) {
 		};
 
 		return mesh;
+	}
+
+	this._mle = function(values) {
+		var mle = new Object();
+		var sum = 0;
+
+		for(var i=0; i<values.length; i++) {
+			sum += values[i];
+		}
+
+		var average = sum/values.length;
+
+		mle.lambda = 1/average;
+
+		return mle;
 	}
 }
 ExponentialDistribution.prototype = new ContinuousDistribution();
