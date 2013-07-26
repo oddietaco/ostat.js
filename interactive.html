@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script type="text/javascript" src="ostat.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+  <script src="http://code.highcharts.com/highcharts.js"></script>
+  <link rel="stylesheet" type="text/css" href="ostat.css" />
+  <link rel="stylesheet" type="text/css" href="resources/jqueryui/themes/base/jquery.ui.all.css" />
+  <link href='http://fonts.googleapis.com/css?family=Ubuntu+Mono|Arvo|PT+Sans' rel='stylesheet' type='text/css'>
+
+  <script>
+	$(function() {
+    	$( "#slider" ).slider({
+    		min:0,
+    		max:3,
+    		step: 0.1,
+    		change: function() {
+    			var value = $("#slider").slider("option","value");
+    			$("#slider").find(".ui-slider-handle").text(value);
+    			drawPDF();
+    		},
+    		slide: function() {
+        		var value = $("#slider").slider("option","value");
+        		$("#slider").find(".ui-slider-handle").text(value);
+    		},
+    		value: 1,
+    		create: function(event,ui) {
+    			var value = $("#slider").slider("option","value");
+        		$("#slider").find(".ui-slider-handle").text(value);
+        		$("#slider").slider("disable");
+    		}
+    	});
+ 	 });
+
+	drawPDF = function() {
+		DescriptiveStatistics.plotInteractivePDF('#graph_container',
+			new ExponentialDistribution($("#slider").slider("option","value")));
+	}
+  </script>
+</head>
+
+<body>
+	<h1>oStat.js</h1>
+	<h2>Interactive Exponential Distribution</h2>
+
+	<input type="button" id="generate_data" value="Generate Random Variates" style="margin-bottom: 10pt"/>
+
+	<div id="slider"></div>
+
+	<div id="graph_container" style="width:100%; height:400px;"></div>
+
+	<script>
+  		$("#generate_data").click(function() {
+  			lambda = new UniformDistribution(0,2).rand(1)[0];
+  			distribution = new ExponentialDistribution(lambda);
+			rands = distribution.rand(1000);
+			DescriptiveStatistics.plotHistogram('#graph_container',rands,{
+				title:{text:"Histogram of Random Variates"},
+				yAxis:{title:{text:"Count"}}
+			});
+			$("#slider").slider("enable");
+  		});
+  	</script>
+</body>
+</html>

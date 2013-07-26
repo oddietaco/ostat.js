@@ -49,7 +49,6 @@ var MathExt = {
 var DescriptiveStatistics = {
 
 	/*
-	 *
 	 * Puts a high charts graph into the element with id container. The graph
 	 * will represent a historgram of the values in passed in.
 	 *
@@ -61,10 +60,14 @@ var DescriptiveStatistics = {
 			options = new Object();
 		}
 
+		var max_value = Math.max.apply(Math, bins.counts);
+
+		console.log(bins);
+
 		var base_options = new Object();	
 		base_options.chart = {type: "column"};
-		base_options.xAxis = {type: "linear"};
-		base_options.yAxis = {min: 0};
+		base_options.xAxis = {type: "linear", /*min:0, max:bins.max*1.1*/};
+		base_options.yAxis = {min: 0, max: max_value * 1.1};
 		base_options.tooltip = {enabled: false};
 		base_options.series = [{
                 data: bins.counts,
@@ -78,40 +81,48 @@ var DescriptiveStatistics = {
 	},
 
 	/*
-	 * @TODO: Currently, this function only supports *adding* an interactive chart to an
+	 * @TODO (#9): Currently, this function only supports *adding* an interactive chart to an
 	 * existing histogram chart. Expand it to support creating an interactive PDF as the only
 	 * chart in the container.
+	 *
+	 * @TODO (#10): Have this function *add* the slider to the page, rather than requiring that it already
+	 * be there.
 	 *
 	 * Puts an interactive representation of the specified distribution's PDF on a chart.
 	 */
 	plotInteractivePDF: function(container,distribution,mesh) {
 		mesh = mesh || 20;
-
 		var chart = $(container).highcharts();
+		if(chart.series.length==0) {
+			throw "plotInteractivePDF must plot on top of the historgram";
+		}
+
+		var mesh_grid = distribution.meshGrid(mesh);
+		var num_bins = chart.series[0].data.length;
+ 		var pdf_points = new Array();
+
+		var num_variates = 0;
+		for(var i=0; i<num_bins; i++) {
+			num_variates +=  chart.series[0].data[i].y;
+		}
+
+ 		var pdf_points = new Array();
+		for(var i=0; i<mesh+1;i++) {
+			pdf_points.push(num_variates*bin_width*distribution.f(mesh_grid.points[i]));
+		}
+
 		if(chart.series.length==1) {
-			var mesh_grid = distribution.meshGrid(mesh);
-			var pdf_points = new Array();
-
-			for(var i=0; i<mesh+1;i++) {
-				pdf_points.push(distribution.f(mesh_grid.points[i]));
-			}
-
-			chart.addAxis({
-				id: 'pdfaxis',
-				min: 0,
-				labels: {enabled: false},
-				title: {text: null},
-			});
-
 			chart.addSeries({
                 data: pdf_points,
-                yAxis: 'pdfaxis',
+                yAxis: 0,
                 type: 'spline',
                 showInLegend: false,
                 marker: {enabled: false},
                 pointStart: mesh_grid.min,
                 pointInterval: mesh_grid.width
             });
+		} else if(chart.series.length==2) {
+			chart.series[1].setData(pdf_points,true);
 		}
 	},
 
@@ -121,7 +132,7 @@ var DescriptiveStatistics = {
 	},
 
 	/*
-	 * @TODO Use different binning method
+	 * @TODO (#7) Use different binning method
 	 *
 	 * Helper method to calculate the width and number of bins that will
 	 * be used in the Histogram plot. Also, provides the count of values
@@ -243,7 +254,7 @@ function ContinuousDistribution() {
 	}
 
 	/*
-	 * @TODO: Refactor so that _determinMesh returns the information needed to create the 
+	 * @TODO (#11): Refactor so that _determineMesh returns the information needed to create the 
 	 * mesh, but doesn't actually create the mesh.
 	 *
 	 */
@@ -342,7 +353,7 @@ function ExponentialDistribution(lambda) {
 	}
 
 	this.toString = function() {
-		return "Exp (" + mean.toFixed(2) + ")";
+		return "Exp (" + lambda.toFixed(2) + ")";
 	}
 
 	this._cdf = function(x) {
