@@ -62,8 +62,6 @@ var DescriptiveStatistics = {
 
 		var max_value = Math.max.apply(Math, bins.counts);
 
-		console.log(bins);
-
 		var base_options = new Object();	
 		base_options.chart = {type: "column"};
 		base_options.xAxis = {type: "linear", /*min:0, max:bins.max*1.1*/};
