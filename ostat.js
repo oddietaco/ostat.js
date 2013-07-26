@@ -100,6 +100,7 @@ var DescriptiveStatistics = {
 		var mesh_grid = distribution.meshGrid(mesh);
 		var num_bins = chart.series[0].data.length;
  		var pdf_points = new Array();
+ 		var bin_width = chart.xAxis[0].pointRange;
 
 		var num_variates = 0;
 		for(var i=0; i<num_bins; i++) {
