@@ -54,7 +54,7 @@ var DescriptiveStatistics = {
 	 *
 	 */
 	plotHistogram: function(container, values, options) {
-		bins = this._createBins(values);
+		var bins = this._createBins(values);
 
 		if(!(typeof options == "object" && options !== null)) {
 			options = new Object();
@@ -64,7 +64,7 @@ var DescriptiveStatistics = {
 
 		var base_options = new Object();	
 		base_options.chart = {type: "column"};
-		base_options.xAxis = {type: "linear", /*min:0, max:bins.max*1.1*/};
+		base_options.xAxis = {type: "linear", min:0, max:Math.floor(bins.max)};
 		base_options.yAxis = {min: 0, max: max_value * 1.1};
 		base_options.tooltip = {enabled: false};
 		base_options.series = [{
@@ -148,27 +148,22 @@ var DescriptiveStatistics = {
 
 		var bin_width = (values[values.length-1]-values[0])/num_bins;
 		var bin_counts = new Array();
-		var bin_limits = new Array();
 		var bin_max = values[0]+bin_width;
 		var bin_current = 0;
 
 		bin_counts[0] = 0;
-		bin_limits[0] = "[" + values[0].toFixed(3) + ", " + bin_max.toFixed(3) + ")";
 
 		for(var i=0; i<values.length;i++) {
 			if(values[i]>=bin_max) {
 				bin_current++;
 				bin_counts[bin_current] = 0;
-				bin_limits[bin_current] = "[" + bin_max.toFixed(3) + ", ";
 				bin_max += bin_width;
-				bin_limits[bin_current] += bin_max.toFixed(3) + ")";
 			}
 			bin_counts[bin_current]++;
 		}
 
-		bins = {
+		var bins = {
 			counts: bin_counts,
-			limits: bin_limits,
 			min: values[0],
 			max: values[values.length-1],
 			width: bin_width
