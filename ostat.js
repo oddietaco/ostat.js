@@ -64,7 +64,7 @@ var DescriptiveStatistics = {
 
 		var base_options = new Object();	
 		base_options.chart = {type: "column"};
-		base_options.xAxis = {type: "linear", min:0, max:Math.floor(bins.max)};
+		base_options.xAxis = {type: "linear", max:Math.floor(bins.max)};
 		base_options.yAxis = {min: 0, max: max_value * 1.1};
 		base_options.tooltip = {enabled: false};
 		base_options.series = [{
@@ -390,6 +390,7 @@ function ExponentialDistribution(lambda) {
 		var average = sum/values.length;
 
 		mle.lambda = 1/average;
+		mle.stdev = mle.lambda / Math.sqrt(values.length);
 
 		return mle;
 	}

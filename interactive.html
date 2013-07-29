@@ -45,12 +45,15 @@
 	<h2>Interactive Exponential Distribution</h2>
 
 	<input type="button" id="generate_data" value="Generate Random Variates" style="margin-bottom: 10pt"/>
+	<input type="button" id="show_mle" value="Show computed lambda" />
 
 	<div id="slider"></div>
 
 	<div id="graph_container" style="width:100%; height:400px;"></div>
 
 	<script>
+		$("#show_mle").hide();
+
   		$("#generate_data").click(function() {
   			lambda = new UniformDistribution(.1,2).rand(1)[0];
   			distribution = new ExponentialDistribution(lambda);
@@ -60,7 +63,12 @@
 				yAxis:{title:{text:"Count"}}
 			});
 			$("#slider").slider("enable");
+			$("#show_mle").show();
   		});
+
+  		$("#show_mle").click(function() {
+  			alert(DescriptiveStatistics.maximumLikelihood(rands,new ExponentialDistribution(1)).lambda);
+  		})
   	</script>
 </body>
 </html>
