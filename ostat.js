@@ -67,7 +67,6 @@ var DescriptiveStatistics = {
 		base_options.xAxis = {type: "linear", max:bins.max, id: 'historgram_axis'};
 		base_options.yAxis = {min: 0};
 		base_options.tooltip = {enabled: false};
-		console.log(bins);
 		base_options.series = [{
                 data: bins.density,
                 showInLegend: false,
@@ -116,22 +115,19 @@ var DescriptiveStatistics = {
 			mesh_x.push(x);
 			var unscaled_y = distribution.f(x);
 			var y = num_variates*mesh_width*unscaled_y;
-			pdf_points.push(y);
+			pdf_points.push(unscaled_y);
 		}
 
 		if(chart.series.length==1) {
 			chart.addSeries({
                 data: pdf_points,
-               // yAxis: 0,
-               // xAxis: 0,
                 type: 'spline',
                 showInLegend: false,
-                // marker: {enabled: false},
+                marker: {enabled: false},
                 pointStart: 0,
                 pointInterval: mesh_width,
                 groupPadding: 0,
                 pointPadding: 0,
-                pointPlacement: 'between',
             });
 		} else if(chart.series.length==2) {
 			chart.series[1].setData(pdf_points,true);

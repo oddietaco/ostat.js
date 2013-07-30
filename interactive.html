@@ -13,7 +13,7 @@
 	$(function() {
     	$( "#slider" ).slider({
     		min:0.1,
-    		max:3,
+    		max:6,
     		step: 0.1,
     		change: function() {
     			var value = $("#slider").slider("option","value");
@@ -55,14 +55,15 @@
 		$("#show_mle").hide();
 
   		$("#generate_data").click(function() {
-  			lambda = new UniformDistribution(.1,2).rand(1)[0];
+  			lambda = new UniformDistribution(0.5,5.5).rand(1)[0];
   			distribution = new ExponentialDistribution(lambda);
-			rands = distribution.rand(1000);
-			DescriptiveStatistics.plotHistogram('#graph_container',rands,{
-				title:{text:"Histogram of Random Variates"},
-				yAxis:{title:{text:"Count"}}
-			});
-			$("#slider").slider("enable");
+        rands = distribution.rand(1000);
+        
+        DescriptiveStatistics.plotHistogram('#graph_container',rands,{
+				  title:{text:"Histogram of Random Variates"},
+				  yAxis:{title:{text:"Density"}}
+        });
+      $("#slider").slider("enable");
 			$("#show_mle").show();
   		});
 
