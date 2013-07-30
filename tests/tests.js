@@ -1,8 +1,22 @@
+var TestSettings = {
+	tolerance: 0.0001
+};
+
 window.tol = function(actual, expected, message) {
-		var tolerance = 0.0000001;
-		var abs_diff = Math.abs(actual-expected);
-		ok(abs_diff <= tolerance, message);
-	};
+	var abs_diff = Math.abs(actual-expected);
+	ok(abs_diff <= TestSettings.tolerance, message);
+};
+
+window.tolArray = function(actual, expected, message) {
+	equal(actual.length, expected.length, message + " - arrays must be same length");
+	var all_match = true;
+	for(var i=0; i<actual.length; i++) {
+		//tol(actual[i],expected[i], message + " - element " + i);
+		if(Math.abs(actual[i]-expected[i]) > TestSettings.tolerance) all_match = false;
+	}
+
+	ok(all_match, message + " - all elements match");
+};
 
 test("Normal Distribution Instantiation", function() {
 	// Standard Normal Distribution
@@ -54,4 +68,33 @@ test("Exponential Distribution Descriptive Stats", function() {
 	mle = DescriptiveStatistics.maximumLikelihood(rands,new ExponentialDistribution(.5));
 	tol(mle.lambda, mle_lambda_from_r, "Exponential distribution maximum likelihood should have rate value of " + mle_lambda_from_r);
 	tol(mle.stdev, mle_lambda_st_dev_from_r, "Exponential distribution maximum likelihood should have rate value standard deviation of " + mle_lambda_st_dev_from_r);
+});
+
+test("Histogram Plot Calculations", function() {
+	// In this test suite, the "right" answers are based on results from truehist{MASS} in R. truehist was modified to return est
+	var rands, bins, actual_density, actual_counts;
+	
+	rands = [0.3700098 ,0.03685881 ,0.1064986 ,0.02659055 ,0.359341 ,0.2178925 ,0.03142914 ,0.2665462 ,0.09259294 ,0.1705301 ,0.05779836 ,0.3456489 ,0.2975131 ,0.02004779 ,0.2744864 ,0.004986506 ,0.07332292 ,0.04064577 ,0.09763359 ,0.696223 ,0.1651295 ,0.2944616 ,0.05960633 ,0.08822585 ,0.04756649 ,0.06983136 ,0.08028877 ,0.5023245 ,0.2765516 ,0.299333 ,0.2608203 ,0.009562534 ,0.4971027 ,0.1160798 ,0.2859234 ,0.02735748 ,0.2629563 ,0.0325441 ,0.2231228 ,0.1315127 ,0.1597088 ,1.647734 ,0.008058014 ,0.2758333 ,0.08834053 ,0.1045535 ,0.2125091 ,0.1315713 ,0.09552505 ,0.08684086];
+	bins = DescriptiveStatistics._createBins(rands,Math.floor(Math.sqrt(rands.length)));
+
+	actual_density = [2.81236162, 1.10790003, 0.25566924,0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.08522308];
+	actual_counts = [33, 13,  3,  0,  0,  0,  0,  1];
+	tolArray(actual_density,bins.density,"Bin density check on Exponential Distribution");
+	tolArray(actual_counts,bins.counts,"Bin count check on Exponential Distribution");
+
+	rands = [1.129058 ,0.8989873 ,0.4271565 ,6.234165 ,1.014238 ,7.493957 ,0.4795394 ,0.3082982 ,1.734956 ,2.893085 ,1.011732 ,0.11598 ,0.184276 ,0.3461326 ,3.521292 ,0.4187719 ,0.290891 ,0.8915385 ,0.3464102 ,2.957714 ,3.682382 ,1.57241 ,0.7133084 ,0.6765901 ,2.655351 ,0.5858981 ,1.079853 ,5.219865 ,4.636108 ,8.924927 ,3.414989 ,0.8768504 ,0.1303174 ,0.6779513 ,2.046205 ,0.2810021 ,3.480271 ,2.985158 ,0.5034663 ,2.08517 ,1.211526 ,0.1783213 ,2.001268 ,0.2786554 ,0.4087405 ,2.923738 ,0.9827117 ,2.130234 ,1.380393 ,0.2060943 ,7.846775 ,1.848654 ,0.3054477 ,1.676867 ,1.608314 ,0.2309414 ,1.552246 ,1.670434 ,0.0583277 ,3.620179];
+	bins = DescriptiveStatistics._createBins(rands,Math.floor(Math.sqrt(rands.length)));
+
+	actual_density = [0.4210558 ,0.1578959 ,0.1315799 ,0.01315799 ,0.02631599 ,0.01315799 ,0.01315799 ,0.01315799];
+	actual_counts = [32 ,12 ,10 ,1 ,2 ,1 ,1 ,1];
+	tolArray(actual_density,bins.density,"Bin density check on Exponential Distribution");
+	tolArray(actual_counts,bins.counts,"Bin count check on Exponential Distribution");
+
+	rands = [0.2746225 ,0.1084524 ,0.001194116 ,0.0177668 ,0.007122712 ,0.1343891 ,0.1005919 ,0.01176297 ,0.09840723 ,0.07761272 ,0.08000483 ,0.008767528 ,0.01700107 ,0.07769843 ,0.02928774 ,0.001159419 ,0.2604587 ,0.08065033 ,0.07200769 ,0.03286316 ,0.00477584 ,0.2097029 ,0.08121663 ,0.08111952 ,0.04464502 ,0.19646 ,0.1602978 ,0.0004993009 ,0.003380682 ,0.01930066 ,0.01108063 ,0.006712058 ,0.001260791 ,0.01482879 ,0.1637839 ,0.02864202 ,0.07020633 ,0.0666521 ,0.01190766 ,0.01253295 ,0.01500805 ,0.008474252 ,0.04838173 ,0.1103293 ,0.1935627 ,0.004297124 ,0.02341927 ,0.02779479 ,0.09123013 ,0.07832055 ,0.02229766 ,0.01548146 ,0.04617177 ,0.01962436 ,0.008397366 ,0.003734214 ,0.09248752 ,0.06301782 ,0.04344012 ,0.03351081 ,0.09290283 ,0.06087861 ,0.0464423 ,0.04380354 ,0.03418468 ,0.051165 ,0.01014797 ,0.0109615 ,0.01558816 ,0.009536463 ,0.09971537 ,0.07432703 ,0.2924911 ,0.02020495 ,0.09133813 ,0.05454205 ,0.001003707 ,0.09560762 ,0.002616277 ,0.07655457 ,0.1362267 ,0.02757296 ,0.02413171 ,0.043134 ,0.06512583 ,0.0006554633 ,0.05395299 ,0.1355623 ,0.165318 ,0.07453826 ,0.1141414 ,0.08342002 ,0.009554096 ,0.06750053 ,0.1416665 ,0.01423733 ,0.04748698 ,0.1765193 ,0.00445153 ,0.02621991 ,0.05966057 ,0.1391397];
+	bins = DescriptiveStatistics._createBins(rands,Math.floor(Math.sqrt(rands.length)));
+
+	actual_density = [14.43769 ,4.70064 ,6.379443 ,3.693362 ,1.678801 ,1.007281 ,1.007281 ,0.3357602 ,0.3357602 ,0.3357602 ,0.3357602];
+	actual_counts = [43 ,14 ,19 ,11 ,5 ,3 ,3 ,1 ,1 ,1 ,1];
+	tolArray(actual_density,bins.density,"Bin density check on Exponential Distribution");
+	tolArray(actual_counts,bins.counts,"Bin count check on Exponential Distribution");
 });

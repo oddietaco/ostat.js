@@ -60,18 +60,22 @@ var DescriptiveStatistics = {
 			options = new Object();
 		}
 
-		var max_value = Math.max.apply(Math, bins.counts);
+		var max_value = Math.max.apply(Math, bins.density);
 
 		var base_options = new Object();	
 		base_options.chart = {type: "column"};
-		base_options.xAxis = {type: "linear", max:Math.floor(bins.max)};
-		base_options.yAxis = {min: 0, max: max_value * 1.1};
+		base_options.xAxis = {type: "linear", max:bins.max, id: 'historgram_axis'};
+		base_options.yAxis = {min: 0};
 		base_options.tooltip = {enabled: false};
+		console.log(bins);
 		base_options.series = [{
-                data: bins.counts,
+                data: bins.density,
                 showInLegend: false,
-                pointStart: bins.min,
-                pointInterval: bins.width
+                pointStart: 0,
+                pointInterval: bins.width,
+                groupPadding: 0,
+                pointPadding: 0,
+                pointPlacement: 'between',
             }];
 
 		$.extend(true,options,base_options);
@@ -95,30 +99,39 @@ var DescriptiveStatistics = {
 			throw "plotInteractivePDF must plot on top of the historgram";
 		}
 
-		var mesh_grid = distribution.meshGrid(mesh);
-		var num_bins = chart.series[0].data.length;
+		var min_value = chart.xAxis[0].getExtremes().dataMin;
+ 		var max_value = chart.xAxis[0].getExtremes().dataMax;
  		var pdf_points = new Array();
- 		var bin_width = chart.xAxis[0].pointRange;
+ 		var mesh_width = (max_value-min_value)/mesh;
+ 		var mesh_x = Array();
 
 		var num_variates = 0;
-		for(var i=0; i<num_bins; i++) {
+		for(var i=0; i<chart.series[0].data.length; i++) {
 			num_variates +=  chart.series[0].data[i].y;
 		}
 
  		var pdf_points = new Array();
 		for(var i=0; i<mesh+1;i++) {
-			pdf_points.push(num_variates*bin_width*distribution.f(mesh_grid.points[i]));
+			var x = min_value+mesh_width*i;
+			mesh_x.push(x);
+			var unscaled_y = distribution.f(x);
+			var y = num_variates*mesh_width*unscaled_y;
+			pdf_points.push(y);
 		}
 
 		if(chart.series.length==1) {
 			chart.addSeries({
                 data: pdf_points,
-                yAxis: 0,
+               // yAxis: 0,
+               // xAxis: 0,
                 type: 'spline',
                 showInLegend: false,
-                marker: {enabled: false},
-                pointStart: mesh_grid.min,
-                pointInterval: mesh_grid.width
+                // marker: {enabled: false},
+                pointStart: 0,
+                pointInterval: mesh_width,
+                groupPadding: 0,
+                pointPadding: 0,
+                pointPlacement: 'between',
             });
 		} else if(chart.series.length==2) {
 			chart.series[1].setData(pdf_points,true);
@@ -141,7 +154,7 @@ var DescriptiveStatistics = {
 	_createBins: function(orig_values,num_bins) {
 		var values = orig_values.slice(0);
 		values.sort(function(a,b){return a-b});
-		
+
 		// there are other, more sophisticated ways of computing the number of bins
 		// maybe some day I'll add one
 		num_bins = num_bins || Math.floor(Math.sqrt(values.length));
@@ -150,11 +163,11 @@ var DescriptiveStatistics = {
 		var bin_counts = new Array();
 		var bin_max = values[0]+bin_width;
 		var bin_current = 0;
-
+		var bin_density = new Array();
 		bin_counts[0] = 0;
 
 		for(var i=0; i<values.length;i++) {
-			if(values[i]>=bin_max) {
+			while(values[i]>=bin_max) {
 				bin_current++;
 				bin_counts[bin_current] = 0;
 				bin_max += bin_width;
@@ -162,8 +175,13 @@ var DescriptiveStatistics = {
 			bin_counts[bin_current]++;
 		}
 
+		for(var i=0; i<bin_counts.length; i++) {
+			bin_density[i] = bin_counts[i] / (values.length*bin_width);
+		}
+
 		var bins = {
 			counts: bin_counts,
+			density: bin_density,
 			min: values[0],
 			max: values[values.length-1],
 			width: bin_width
